@@ -12,8 +12,7 @@ function ModalNhanVien({ MucLuong, TenNV }) {
     const handleChange = (event) => {
 
         const name = event.target.name;
-        const value = name === 'gender' ? Number(event.target.value) : event.target.value;
-
+        let value = name === 'gender' ? Number(event.target.value) : event.target.value;
         dispatch(setInfoNV({
             ...state.nhanVien,
             [name]: value,
@@ -34,6 +33,12 @@ function ModalNhanVien({ MucLuong, TenNV }) {
                     title: 'Thành công',
                     message: 'Thêm mới nhân viên thành công!',
                     type: 'success',
+                }));
+            } else {
+                dispatch(setToastMesagae({
+                    title: 'Thất bại',
+                    message: 'xảy ra lỗi khi thêm mới nhân viên!',
+                    type: 'error',
                 }));
             }
         }else {

@@ -1,6 +1,6 @@
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import WatchLaterIcon from '@mui/icons-material/WatchLater';
-import { Button, IconButton, Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -8,12 +8,11 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import TableViewIcon from '@mui/icons-material/TableView';
 import { useEffect, useState } from 'react';
-import { useStore } from '../../hooks';
 import { getAllPayrolls, resetCongLam } from '../../api';
-import { setListPayroll, setToastMesagae, showModal } from '../../reducers/action';
-import ModalPayroll from '../CommonModal/ModalPayroll'
+import { useStore } from '../../hooks';
+import { setToastMesagae, showModal } from '../../reducers/action';
+import ModalBangLuong from '../CommonModal/ModalBangLuong';
 
 function formatThu(thu) {
     if(thu === 1) {
@@ -48,19 +47,27 @@ function formatDate(date) {
 
 function Payroll() {
 
-    const [state, dispatch] = useStore();
-    const { listPayroll } = state
-    const [date, setDate] = useState(new Date())
+    const [listPayroll, setListPayroll] = useState([]);
+    const [date, setDate] = useState(new Date());
+    const dispatch = useStore()[1];
+
+    const fetchData = async () => {
+        const response = await getAllPayrolls();
+        const { data } = response;
+        if (!data) {
+            dispatch(setToastMesagae({
+                title: 'Lỗi',
+                message: 'Lỗi lấy danh sách bảng lương!',
+                type: 'error',
+            }));
+            return;
+        }
+        setListPayroll(data)
+    }
 
     useEffect(() => {
-        async function fetchData() {
-            const response = await getAllPayrolls();
-            const { data } = response;
-            dispatch(setListPayroll(data));
-        }
-
        fetchData();
-    }, [dispatch])
+    }, [])
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -72,33 +79,30 @@ function Payroll() {
     }, []);
 
     const handleReset = async id => {
-        const response = await resetCongLam({id})
+        const response = await resetCongLam({id});
         const { data } = response;
-        if(data.key) {
-            const response = await getAllPayrolls();
-            const { data } = response;
-            dispatch(setListPayroll(data));
-
+        if (!data.key) {
             dispatch(setToastMesagae({
-                title: 'Thành công',
-                message: 'Đã làm mới lại số công làm',
-                type: 'success',
-            }));
-        }else {
-            dispatch(setToastMesagae({
-                title: 'Thất bại',
-                message: 'Lỗi server',
+                title: 'Lỗi',
+                message: 'Lỗi làm mới công làm!',
                 type: 'error',
-            }))
+            }));
+            return;
         }
+        dispatch(setToastMesagae({
+            title: 'Thành công',
+            message: 'Đã làm mới công làm!',
+            type: 'success',
+        }));
+        fetchData();
     }
 
-    const handlePayroll = (Id, TenNv, congLam) => {
+    const showBangLuong = (payroll) => {
         dispatch(showModal({
             showModal: true,
-            title: `Bảng chấm công của nhân viên: ${TenNv}`,
-            component: <ModalPayroll Id={Id} congLam={congLam} />,
-       }));
+            title: `Thông tin bảng lương: ${payroll.TenNv}`,
+            component: <ModalBangLuong payroll={payroll} />,
+        }))
     }
 
     return <>
@@ -115,13 +119,13 @@ function Payroll() {
                 <TableRow>
                 <TableCell><span style={{ color: '#fff' }}>Tên Nhân Viên</span></TableCell>
                     <TableCell align="right">
-                        <span style={{ color: '#fff' }}>Mức lương</span>
-                    </TableCell>
-                    <TableCell align="right">
-                        <span style={{ color: '#fff' }}>Chấm công</span>
-                    </TableCell>
-                    <TableCell align="right">
                         <span style={{ color: '#fff' }}>Số công làm</span>
+                    </TableCell>
+                    <TableCell align="right">
+                        <span style={{ color: '#fff' }}>Tăng ca</span>
+                    </TableCell>
+                    <TableCell align="right">
+                        <span style={{ color: '#fff' }}>Đi trễ</span>
                     </TableCell>
                     <TableCell align="right">
                         <span style={{ color: '#fff' }}>Tổng lương</span>
@@ -135,14 +139,6 @@ function Payroll() {
             <TableBody>
                 {
                     listPayroll.map(payroll => {
-                        const { CongLam } = payroll;
-                        const arrayCongLam = CongLam.split(',')
-                        const checkSoCongLam = arrayCongLam.reduce((accumulator, congLam) => {
-                            if(Number(congLam) === 1) {
-                                return accumulator += 1
-                            }else return accumulator;
-                        }, 0)
-
                         return (
                             <TableRow
                                 key={payroll.Id}
@@ -153,15 +149,18 @@ function Payroll() {
                                         {payroll.TenNv}
                                     </span>
                                 </TableCell>
-                                
-                                <TableCell align="right">{payroll.MucLuong}</TableCell>
+
+                                <TableCell align="right">{payroll.CongLam}</TableCell>
+                                <TableCell align="right">{payroll.TangCa}</TableCell>
+                                <TableCell align="right">{payroll.DiTre}</TableCell>
                                 <TableCell align="right">
-                                    <IconButton onClick={() => handlePayroll(payroll.Id, payroll.TenNv, arrayCongLam)}>
-                                        <TableViewIcon />
-                                    </IconButton>
+                                    <Button 
+                                        variant='contained'
+                                        onClick={() => showBangLuong(payroll)}
+                                    >
+                                        Xem Bảng lương
+                                    </Button>
                                 </TableCell>
-                                <TableCell align="right">{checkSoCongLam}</TableCell>
-                                <TableCell align="right">{payroll.MucLuong * checkSoCongLam}</TableCell>
                                 <TableCell align="right">
                                     <Button onClick={() => handleReset(payroll.Id)} variant='contained'>
                                         <RestartAltIcon />

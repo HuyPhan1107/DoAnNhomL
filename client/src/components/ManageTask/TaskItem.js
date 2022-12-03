@@ -1,10 +1,12 @@
-import { Box, Card, IconButton, Typography } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import TableViewIcon from '@mui/icons-material/TableView';
+import { Box, Card, IconButton, Typography } from '@mui/material';
+import { deleteTask, getStaffByPosition, getTasks } from '../../api';
 import { useStore } from '../../hooks';
-import ModalTask from '../CommonModal/ModalTask';
 import { setTasks, setToastMesagae, showModal } from '../../reducers/action';
-import { deleteTask, getTasks } from '../../api';
+import ModalEmployeeTimekeeping from '../CommonModal/ModalEmployeeTimekeeping';
+import ModalTask from '../CommonModal/ModalTask';
 
 function TaskItem({task}) {
     const dispatch = useStore()[1];
@@ -14,7 +16,7 @@ function TaskItem({task}) {
             showModal: true,
             title: 'Thay đổi thông tin công việc',
             component: <ModalTask task={task} />,
-       }))
+        }))
     }
 
     const handleDelete = async () => {
@@ -39,6 +41,24 @@ function TaskItem({task}) {
         }
     }
 
+    const handleTimekeeping = async () => {
+        const { data } = await getStaffByPosition({staff: task.correspondingPosition});
+        if(!data.success) {
+            dispatch(setToastMesagae({
+                title: 'Thất bại',
+                message: 'Lỗi lấy danh sách nhân viên',
+                type: 'error',
+            }));
+            return;
+        }
+        const listStaff = data.data;
+        dispatch(showModal({
+            showModal: true,
+            title: `Chấm công - Danh sách nhân viên: ${task.correspondingPosition}`,
+            component: <ModalEmployeeTimekeeping listStaff={listStaff} Id={task.Id}/>,
+        }))
+    }
+
     return (<Box mt={1}>
         <Card>
             <Box padding='8px 0 8px 12px'>
@@ -50,6 +70,10 @@ function TaskItem({task}) {
             </Box>
 
             <Box display='flex' justifyContent='flex-end' marginRight='8px'>
+                <IconButton onClick={handleTimekeeping}>
+                    <TableViewIcon />
+                </IconButton>
+
                 <IconButton onClick={handleUpdate}>
                     <EditIcon />
                 </IconButton>

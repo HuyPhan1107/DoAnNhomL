@@ -42,17 +42,17 @@ function ManageTask() {
         <Grid container spacing={2}>
         {
             STATUS.map(status => {
-
                 let taskFilter = [];
                 if(status === STATUS[0]) {
                     taskFilter = tasks.filter(task => task.status === 1);
                 }else if (status === STATUS[1]) {
                     taskFilter = tasks.filter(task => task.status === 2);
-                }else {
+                } else if (status === STATUS[2]) {
                     taskFilter = tasks.filter(task => task.status === 3);
+                } else {
+                    taskFilter = tasks.filter(task => task.status === 4);
                 }
-
-                return (<Grid key={status} item xs={12} sm={4}>
+                return (<Grid key={status} item xs={12} sm={3}>
                     <span style={{fontWeight: 'bold', padding: '8px 0 0 12px'}}>{status}</span>
                     {
                         taskFilter.map(task => (

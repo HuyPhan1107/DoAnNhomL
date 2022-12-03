@@ -11,4 +11,4 @@ export const SET_TASKS = 'SET_TASKS';
 export const SET_LIST_PAYROLL = 'SET_LIST_PAYROLL';
 
 
-export const STATUS = ['Ready', 'In Progress', 'Completed'];
+export const STATUS = ['Ready', 'In Progress', 'Completed', 'Overtime'];

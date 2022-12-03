@@ -7,10 +7,10 @@ import task from './routers/tasks.js';
 import payroll from './routers/payroll.js';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 7007;
 
 app.use(bodyParser.json({ limit: '30mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '30mb' })); 
+app.use(bodyParser.urlencoded({ extended: true, limit: '30mb' }));
 app.use(cors());
 
 app.use('/nhanvien', nhanvien);
